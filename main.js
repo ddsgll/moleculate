@@ -2,7 +2,7 @@
 'use strict';
 
 var cl = (m) => console.log(m);
-
+cl('MoLeCuLaTe!');
 
 
 
@@ -11,8 +11,9 @@ var cl = (m) => console.log(m);
 
 // Modules
 var
-	fs     = require('fs'),
 	_      = require('underscore'),
+	fs     = require('fs'),
+	cmd    = require('commander'),
 	path   = require('path'),
 	mkdirp = require('mkdirp');
 
