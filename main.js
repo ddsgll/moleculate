@@ -2,7 +2,7 @@
 'use strict';
 
 var cl = (m) => console.log(m);
-cl('MoLeCuLaTe!');
+cl('MoLeCuLaTe! (in ' + __dirname + ')');
 
 
 
@@ -13,13 +13,12 @@ cl('MoLeCuLaTe!');
 var
 	_      = require('underscore'),
 	fs     = require('fs'),
-	cmd    = require('commander'),
 	path   = require('path'),
 	mkdirp = require('mkdirp');
 
 // Constants
-const _MAINFILE = './moleculate.json';
-const _MAINDIR  = './molecules/';
+const _MAINFILE = __dirname + '/moleculate.json';
+const _MAINDIR  = __dirname + '/molecules/';
 
 // Variables
 var projectBlocks = [];
@@ -81,7 +80,7 @@ function moleculate(dir, opts) {
 			if (el.charAt(0) != '.') {
 				projectBlocks.push(el.slice(0,-5));
 
-				let path = __dirname + dir + el.slice(0,-5);
+				let path = dir + el.slice(0,-5);
 
 				mkdirp(path);
 			}
@@ -166,5 +165,5 @@ var options = {
 	cssTemplate: 'stylus'
 }
 
-moleculate('/blocks/', options);
+moleculate(__dirname + '/blocks/', options);
 //----------------------------------------
