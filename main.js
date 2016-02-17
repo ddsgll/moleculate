@@ -2,7 +2,7 @@
 'use strict';
 
 var cl = (m) => console.log(m);
-cl('MoLeCuLaTe! (in ' + __dirname + ')');
+cl('MoLeCuLaTe! (in ' + process.cwd() + ')');
 
 
 
@@ -17,8 +17,8 @@ var
 	mkdirp = require('mkdirp');
 
 // Constants
-const _MAINFILE = __dirname + '/moleculate.json';
-const _MAINDIR  = __dirname + '/molecules/';
+const _MAINFILE = process.cwd() + '/moleculate.json';
+const _MAINDIR  = process.cwd() + '/molecules/';
 
 // Variables
 var projectBlocks = [];
@@ -165,5 +165,5 @@ var options = {
 	cssTemplate: 'stylus'
 }
 
-moleculate(__dirname + '/blocks/', options);
+moleculate(process.cwd() + '/blocks/', options);
 //----------------------------------------
