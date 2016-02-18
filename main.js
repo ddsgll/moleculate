@@ -21,8 +21,8 @@ var
 
 // Constants
 const _MAINFILE = process.cwd() + '/moleculate.json';
-const _MDIR  = process.cwd() + '/moleculate/molecules/';
-const _ADIR  = process.cwd() + '/moleculate/atoms/';
+const _MDIR  = process.cwd() + '/molecules/';
+const _ADIR  = process.cwd() + '/atoms/';
 
 // Variables
 var projectBlocks = [];
@@ -253,16 +253,6 @@ function strToArray(string) {
 
 //» MAIN THREAD 
 //----------------------------------------
-fs.access(_MDIR, fs.R_OK && fs.W_OK, (err) => {
-	if (err)
-		mkdirp(_MDIR);
-});
-
-fs.access(_ADIR, fs.R_OK && fs.W_OK, (err) => {
-	if (err)
-		mkdirp(_ADIR);
-});
-
 
 
 cl(`script started in ${process.cwd()}`.gray);
@@ -273,7 +263,7 @@ cli.parse({
 		mutate  : [ 0  , 'Mutations list of atom or molecule' , 'string'],
 		quark   : ['q' , 'Set quark to atom' , 'string'],
 		spins   : ['s' , 'Set spins of quark' , 'string'],
-		path    : ['p' , 'Set directory to save blocks' , 'string'],
+		path    : ['p' , 'Set directory to save blocks relative to project folder' , 'string'],
 		with    : ['w' , 'List of atoms in molecule', 'string'],
 		rewrite : ['r' , 'Rewrite existing element', 'bool']
 });
