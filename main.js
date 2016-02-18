@@ -2,7 +2,6 @@
 'use strict';
 
 var cl = (m) => console.log(m);
-cl('MoLeCuLaTe! (in ' + process.cwd() + ')');
 
 
 
@@ -13,12 +12,17 @@ cl('MoLeCuLaTe! (in ' + process.cwd() + ')');
 var
 	_      = require('underscore'),
 	fs     = require('fs'),
+	cli    = require('cli'),
 	path   = require('path'),
+	exit   = require('exit'),
+	jsonb  = require('json-beautify'),
+	colors = require('colors'),
 	mkdirp = require('mkdirp');
 
 // Constants
 const _MAINFILE = process.cwd() + '/moleculate.json';
-const _MAINDIR  = process.cwd() + '/molecules/';
+const _MDIR  = process.cwd() + '/moleculate/molecules/';
+const _ADIR  = process.cwd() + '/moleculate/atoms/';
 
 // Variables
 var projectBlocks = [];
@@ -31,31 +35,107 @@ var projectBlocks = [];
 
 //» CLASSES 
 //----------------------------------------
-class Block {
+class Atom {
 
-	constructor(data, bDir) {
+	constructor(name, quark, muts, spins) {
 
-		this.full     = data;
-		this.title    = data.title;
-		this.blockDir = bDir
-
-		data.inherits != undefined ? this.inh = data.inherits : this.inh = [];
-	}
-
-
-	_fillBlock() {
+		this.name      = name;
+		this.quark     = quark ? quark : '';
+		this.mutations = muts  ? muts  : [];
+		this.spins     = spins ? spins : [];
 
 	}
 
-
-	sayhi() {
-		cl('Hello! I am ' + this.title);
+	whoIs() {
+		cl(`Name: ${this.name}, quark: ${this.quark}, mutations: ${this.mutations}, spins: ${this.spins}`);
 	}
 
+	init(mode) {
+		let fileName = `${_ADIR}${this.name}.json`;
+		let fileContent = jsonb(this, null, 4, 100);
 
-	init() {
-		
+		cl(mode);
+
+		fs.access(fileName, fs.F_OK, (notExist) => {
+
+			if (notExist && mode === 'new') {
+
+				fs.writeFile(fileName, fileContent, (err) => {
+					if (err) throw err;
+
+					console.log(`Atom ${this.name} created:`.green);
+					console.log(fileContent.gray);
+				});
+
+			}
+			else {
+				if (mode === 'rewrite') {				
+					fs.writeFile(fileName, fileContent, 'utf8', (err) => {
+						if (err) throw err;
+
+						console.log(`Atom ${this.name} created:`.green);
+						console.log(fileContent.gray);
+					});
+				}
+
+				else {
+					cl(`File already exists. Use -r to rewrite file`);
+				}	
+			}
+
+		});
+
 	}
+
+}
+
+
+
+class Molecule {
+
+	constructor(name, muts, atoms) {
+
+		this.name      = name;
+		this.mutations = muts  ? muts  : [];
+		this.atoms     = atoms ? atoms : [];
+
+	}
+
+	whoIs() {
+		cl(`Name: ${this.name}, mutations: ${this.mutations}, atoms: ${this.atoms}`);
+	}
+
+	init(mode) {
+		let fileName = `${_MDIR}${this.name}.json`;
+		let fileContent = jsonb(this, null, 4, 100);
+
+		cl(mode);
+
+		fs.access(fileName, fs.F_OK, (notExist) => {
+
+			if (notExist && mode === 'new') {
+
+				fs.writeFile(fileName, fileContent, (err) => {
+					if (err) throw err;
+
+					console.log(`Atom ${this.name} created:`.green);
+					console.log(fileContent.gray);
+				});
+
+			}
+			else if (mode === 'rewrite') {					
+				fs.writeFile(fileName, fileContent, 'utf8', (err) => {
+					if (err) throw err;
+
+					console.log(`Atom ${this.name} created:`.green);
+					console.log(fileContent.gray);
+				});
+			}
+
+		});
+
+	}
+
 }
 
 //----------------------------------------
@@ -72,27 +152,18 @@ and generating folders structure
 	» dir  — name of blocks directory | string
 	» opts — options                  | obj
 */
-function moleculate(dir, opts) {
-	let molecules = [].slice.call( fs.readdirSync(_MAINDIR) );
+	function moleculate(dir) {
 
-		molecules.forEach(function(el, i, arr) {
-
-			if (el.charAt(0) != '.') {
-				projectBlocks.push(el.slice(0,-5));
-
-				let path = dir + el.slice(0,-5);
-
-				mkdirp(path);
-			}
-
-		});
+	let
+		molecules = [].slice.call( fs.readdirSync(_MDIR) ),
+		atoms     = [].slice.call( fs.readdirSync(_ADIR) );
 
 
-	let blocks = getBlocks(molecules, dir);
-
-		blocks.forEach(function(el, i, arr) {
-			el.init();
-		});
+	if (!molecules.length || !atoms.length) {
+		cl(`\nError: directories `.red + `\n'${_MDIR}'\n`.green.underline + ` and `.red + `\n'${_ADIR}'\n`.green.underline + ` are empty`.red);
+		cl(colors.gray.italic(`\tCreate some files first\n\tUse ${colors.green('moleculate --help')} command for help`));
+		exit();
+	}
 }
 
 
@@ -118,7 +189,7 @@ function checkValid(json) {
 	let title = json.title;
 
 	if (title === '' || typeof(title) != 'string') {
-		сonsole.log('Error: wrong json file – title must be string');
+		cl(`Error: wrong json file – title must be string`.red);
 		return false;
 	}
 
@@ -136,16 +207,38 @@ function getBlocks(molecules, dir) {
 
 	let arr = [];
 
-	_.each(molecules, (el,i) => {
+	molecules.forEach( (el,i) => {
 
 		if (el.charAt(0) != '.')
 		{
 			let 
-				path     = _MAINDIR + el,
+				path     = _MDIR + el,
 				data     = getJson(path),
 				curBlock = new Block(data, dir);
 
 			arr.push(curBlock);
+		}
+
+	});
+
+	return arr;
+}
+
+
+
+
+function strToArray(string) {
+
+	let arr = string.split(',');
+
+	arr.forEach( (item, i, arr) => {
+
+		var l = item.split(':').length - 1;
+
+		if (!l) {
+			return;
+		} else {
+			arr[i] = item.split(':');
 		}
 
 	});
@@ -160,10 +253,76 @@ function getBlocks(molecules, dir) {
 
 //» MAIN THREAD 
 //----------------------------------------
-var options = {
-	htmlTemplate: 'jade',
-	cssTemplate: 'stylus'
-}
+fs.access(_MDIR, fs.R_OK && fs.W_OK, (err) => {
+	if (err)
+		mkdirp(_MDIR);
+});
 
-moleculate(process.cwd() + '/blocks/', options);
+fs.access(_ADIR, fs.R_OK && fs.W_OK, (err) => {
+	if (err)
+		mkdirp(_ADIR);
+});
+
+
+
+cl(`script started in ${process.cwd()}`.gray);
+
+cli.parse({
+		molecule: ['m' , 'Creating molecule' , 'string'],
+		atom    : ['a' , 'Creating atom\n' , 'string'],
+		mutate  : [ 0  , 'Mutations list of atom or molecule' , 'string'],
+		quark   : ['q' , 'Set quark to atom' , 'string'],
+		spins   : ['s' , 'Set spins of quark' , 'string'],
+		path    : ['p' , 'Set directory to save blocks' , 'string'],
+		with    : ['w' , 'List of atoms in molecule', 'string'],
+		rewrite : ['r' , 'Rewrite existing element', 'bool']
+});
+
+
+
+
+cli.main(function(args, opt) {
+
+	let
+		A     = opt.atom,
+		M     = opt.molecule,
+		
+		rew   = opt.rewrite,
+		mode  = '',
+
+		quark = opt.quark,
+		path  = opt.path ? opt.path : /blocks/;
+
+	let
+		mutate = opt.mutate != null ? strToArray(opt.mutate) : '',
+		spins  = opt.spins  != null ? strToArray(opt.spins)  : '',
+		witha  = opt.with   != null ? strToArray(opt.with)   : '';
+
+
+	mode = rew !== null ? 'rewrite' : 'new';
+
+
+
+	if ( A !== null && M !== null) {
+		cl(`Error: you can't create atom and molecule in one command`.red);
+		cl(`We're working on it\n`.gray);
+		exit();
+	}
+
+	if (A === null && M === null) {
+		moleculate(process.cwd() + path);
+		exit();
+	}
+
+	if (A) {
+		var atom = new Atom(A, quark, mutate, spins);
+			atom.init(mode);
+	}
+
+	if (M) {
+		var molecule = new Molecule(M, mutate, witha);
+			molecule.init(mode);
+	}
+
+});
 //----------------------------------------

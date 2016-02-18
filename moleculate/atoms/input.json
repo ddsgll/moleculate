@@ -1,0 +1,6 @@
+{
+    "name": "input",
+    "quark": "input",
+    "mutations": [ "bigdfdf", "small", "disabled" ],
+    "spins": [ [ "type", "text" ], "required" ]
+}

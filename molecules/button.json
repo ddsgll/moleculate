@@ -1,5 +1,0 @@
-{
-	"title"    : "button",
-	"states"   : ["active", "disabled", "green", "red"],
-	"mutations": ["darken", "lighten", "small", "big"]
-}
