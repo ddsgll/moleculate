@@ -1,6 +1,6 @@
 {
   "name": "moleculate",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "main.js",
   "scripts": {
@@ -10,7 +10,11 @@
   "license": "MIT",
   "dependencies": {
     "mkdirp": "^0.5.1",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "cli": "latest",
+    "json-beautify": "latest",
+    "colors": "latest",
+    "exit": "latest"
   },
   "bin": {
     "moleculate": "./main.js"
