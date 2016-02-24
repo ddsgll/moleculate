@@ -12,21 +12,13 @@ var cl = (m) => console.log(m);
 var
 	_      = require('underscore'),
 	fs     = require('fs'),
-	cli    = require('cli'),
 	path   = require('path'),
-	exit   = require('exit'),
 	jsonb  = require('json-beautify'),
-	colors = require('colors'),
-	mkdirp = require('mkdirp');
+	colors = require('colors');
 
 // Constants
-const _MAINFILE = process.cwd() + '/moleculate.json';
-const _MDIR  = process.cwd() + '/molecules/';
-const _ADIR  = process.cwd() + '/atoms/';
-
-// Variables
-var projectBlocks = [];
-
+var ATOMS    = process.cwd() + '/atoms.json';
+var MAINDIR  = process.cwd() + '/molecules/';
 //----------------------------------------
 
 
@@ -35,62 +27,6 @@ var projectBlocks = [];
 
 //» CLASSES 
 //----------------------------------------
-class Atom {
-
-	constructor(name, quark, muts, spins) {
-
-		this.name      = name;
-		this.quark     = quark ? quark : '';
-		this.mutations = muts  ? muts  : [];
-		this.spins     = spins ? spins : [];
-
-	}
-
-	whoIs() {
-		cl(`Name: ${this.name}, quark: ${this.quark}, mutations: ${this.mutations}, spins: ${this.spins}`);
-	}
-
-	init(mode) {
-		let fileName = `${_ADIR}${this.name}.json`;
-		let fileContent = jsonb(this, null, 4, 100);
-
-		cl(mode);
-
-		fs.access(fileName, fs.F_OK, (notExist) => {
-
-			if (notExist && mode === 'new') {
-
-				fs.writeFile(fileName, fileContent, (err) => {
-					if (err) throw err;
-
-					console.log(`Atom ${this.name} created:`.green);
-					console.log(fileContent.gray);
-				});
-
-			}
-			else {
-				if (mode === 'rewrite') {				
-					fs.writeFile(fileName, fileContent, 'utf8', (err) => {
-						if (err) throw err;
-
-						console.log(`Atom ${this.name} created:`.green);
-						console.log(fileContent.gray);
-					});
-				}
-
-				else {
-					cl(`File already exists. Use -r to rewrite file`);
-				}	
-			}
-
-		});
-
-	}
-
-}
-
-
-
 class Molecule {
 
 	constructor(name, muts, atoms) {
@@ -105,31 +41,37 @@ class Molecule {
 		cl(`Name: ${this.name}, mutations: ${this.mutations}, atoms: ${this.atoms}`);
 	}
 
-	init(mode) {
-		let fileName = `${_MDIR}${this.name}.json`;
+	init(rewrite) {
+		let fileName = `${MAINDIR}${this.name}.json`;
 		let fileContent = jsonb(this, null, 4, 100);
-
-		cl(mode);
 
 		fs.access(fileName, fs.F_OK, (notExist) => {
 
-			if (notExist && mode === 'new') {
+			if (notExist) {
 
 				fs.writeFile(fileName, fileContent, (err) => {
 					if (err) throw err;
 
-					console.log(`Atom ${this.name} created:`.green);
+					console.log(`molecule ${this.name} created:`.green);
 					console.log(fileContent.gray);
 				});
 
 			}
-			else if (mode === 'rewrite') {					
-				fs.writeFile(fileName, fileContent, 'utf8', (err) => {
-					if (err) throw err;
 
-					console.log(`Atom ${this.name} created:`.green);
-					console.log(fileContent.gray);
-				});
+			else {
+				if (rewrite) {
+					fs.writeFile(fileName, fileContent, (err) => {
+						if (err) throw err;
+
+						console.log(`molecule ${this.name} created:`.green);
+						console.log(fileContent.gray);
+					});	
+				}
+
+				else {
+					console.log("FILE: Already exsit".blue);
+					return;
+				}
 			}
 
 		});
@@ -152,19 +94,10 @@ and generating folders structure
 	» dir  — name of blocks directory | string
 	» opts — options                  | obj
 */
-	function moleculate(dir) {
+function moleculate(dir) {
 
-	let
-		molecules = [].slice.call( fs.readdirSync(_MDIR) ),
-		atoms     = [].slice.call( fs.readdirSync(_ADIR) );
-
-
-	if (!molecules.length || !atoms.length) {
-		cl(`\nError: directories `.red + `\n'${_MDIR}'\n`.green.underline + ` and `.red + `\n'${_ADIR}'\n`.green.underline + ` are empty`.red);
-		cl(colors.gray.italic(`\tCreate some files first\n\tUse ${colors.green('moleculate --help')} command for help`));
-		exit();
-	}
 }
+
 
 
 /*
@@ -174,76 +107,9 @@ Get JSON data from file: return - json
 	» sync — sync reading | bool
 */
 function getJson(file) {
-	let json = JSON.parse( fs.readFileSync(file, 'utf-8') );
+	let json = jsonb( fs.readFileSync(file, 'utf-8'), null, 4,  100 );
 
 	return json;
-}
-
-
-/*
-Check JSON object validity: return - bool
-
-	» json — object to check | obj
-*/
-function checkValid(json) {
-	let title = json.title;
-
-	if (title === '' || typeof(title) != 'string') {
-		cl(`Error: wrong json file – title must be string`.red);
-		return false;
-	}
-
-	return true;
-}
-
-
-/*
-Create array of Block instances from files: return - array
-
-	» molecules — list of molecule files    | array
-	» dir       — directory for Block class | string
-*/
-function getBlocks(molecules, dir) {
-
-	let arr = [];
-
-	molecules.forEach( (el,i) => {
-
-		if (el.charAt(0) != '.')
-		{
-			let 
-				path     = _MDIR + el,
-				data     = getJson(path),
-				curBlock = new Block(data, dir);
-
-			arr.push(curBlock);
-		}
-
-	});
-
-	return arr;
-}
-
-
-
-
-function strToArray(string) {
-
-	let arr = string.split(',');
-
-	arr.forEach( (item, i, arr) => {
-
-		var l = item.split(':').length - 1;
-
-		if (!l) {
-			return;
-		} else {
-			arr[i] = item.split(':');
-		}
-
-	});
-
-	return arr;
 }
 //----------------------------------------
 
@@ -253,66 +119,62 @@ function strToArray(string) {
 
 //» MAIN THREAD 
 //----------------------------------------
+var args = process.argv;
 
+args.shift(); // current fix
+args.shift(); // Delete first command
 
-cl(`script started in ${process.cwd()}`.gray);
+var
+	custom    = false,
+	rewrite   = false,
+	molecules = [].slice.call( fs.readdirSync(MAINDIR) ),
+	atoms 	  = {};
 
-cli.parse({
-		molecule: ['m' , 'Creating molecule' , 'string'],
-		atom    : ['a' , 'Creating atom\n' , 'string'],
-		mutate  : [ 0  , 'Mutations list of atom or molecule' , 'string'],
-		quark   : ['q' , 'Set quark to atom' , 'string'],
-		spins   : ['s' , 'Set spins of quark' , 'string'],
-		path    : ['p' , 'Set directory to save blocks relative to project folder' , 'string'],
-		with    : ['w' , 'List of atoms in molecule', 'string'],
-		rewrite : ['r' , 'Rewrite existing element', 'bool']
-});
+args.forEach( (el, i, arr) => {
 
-
-
-
-cli.main(function(args, opt) {
-
-	let
-		A     = opt.atom,
-		M     = opt.molecule,
-		
-		rew   = opt.rewrite,
-		mode  = '',
-
-		quark = opt.quark,
-		path  = opt.path ? opt.path : /blocks/;
-
-	let
-		mutate = opt.mutate != null ? strToArray(opt.mutate) : '',
-		spins  = opt.spins  != null ? strToArray(opt.spins)  : '',
-		witha  = opt.with   != null ? strToArray(opt.with)   : '';
-
-
-	mode = rew !== null ? 'rewrite' : 'new';
-
-
-
-	if ( A !== null && M !== null) {
-		cl(`Error: you can't create atom and molecule in one command`.red);
-		cl(`We're working on it\n`.gray);
-		exit();
-	}
-
-	if (A === null && M === null) {
-		moleculate(process.cwd() + path);
-		exit();
-	}
-
-	if (A) {
-		var atom = new Atom(A, quark, mutate, spins);
-			atom.init(mode);
-	}
-
-	if (M) {
-		var molecule = new Molecule(M, mutate, witha);
-			molecule.init(mode);
+	if (el === "-c" || el === "--custom") {
+		custom = true;
+		arr.splice(i, 1);
 	}
 
 });
+
+args.forEach( (el, i, arr) => {
+
+	if (el === "-r" || el === "--rewrite") {
+		rewrite = true;
+		arr.splice(i, 1);
+	}
+
+});
+
+fs.access(ATOMS, fs.F_OK, (notExist) => {
+
+	if (notExist)
+		cl(`Create some atoms1`.blue);
+
+	else
+		atoms = getJson(ATOMS);
+
+});
+
+var molecule = args[0];
+var action   = args[1];
+
+args.shift();
+args.shift();
+
+if (action === "mutate") {
+	var molecules = [].slice.call( fs.readdirSync(MAINDIR) );
+
+	if (molecules.indexof(molecule) !== -1) {
+
+	}
+}
+
+if (action === "with") {
+	var mol = new Molecule(molecule, [], args);
+
+	mol.init();
+}
 //----------------------------------------
