@@ -10,11 +10,8 @@ var cl = (m) => console.log(m);
 
 // Modules
 var
-	_      = require('underscore'),
 	fs     = require('fs'),
-	cli    = require('cli'),
 	path   = require('path'),
-	exit   = require('exit'),
 	jsonb  = require('json-beautify'),
 	colors = require('colors'),
 	mkdirp = require('mkdirp');
