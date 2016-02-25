@@ -9,16 +9,25 @@ var cl = (m) => console.log(m);
 //----------------------------------------
 
 // Modules
-var
-	_      = require('underscore'),
-	fs     = require('fs'),
-	path   = require('path'),
-	jsonb  = require('json-beautify'),
-	colors = require('colors');
+const
+	_        = require('underscore'),
+	fs       = require('fs'),
+	path     = require('path'),
+	jsonb    = require('json-beautify'),
+	clear    = require('clear'),
+	colors   = require('colors'),
+	readline = require('readline'),
+	jsonfile = require('jsonfile');
 
-// Constants
-var ATOMS    = process.cwd() + '/atoms.json';
-var MAINDIR  = process.cwd() + '/molecules/';
+
+const rl = readline.createInterface({
+	input : process.stdin,
+	output: process.stdout
+});
+
+const MAINFILE = path.join(process.cwd() + '/moleculate.json');
+
+var blockPath = '/blocks/';
 //----------------------------------------
 
 
@@ -30,54 +39,51 @@ var MAINDIR  = process.cwd() + '/molecules/';
 class Molecule {
 
 	constructor(name, muts, atoms) {
-
 		this.name      = name;
 		this.mutations = muts  ? muts  : [];
 		this.atoms     = atoms ? atoms : [];
+	}
+}
 
+
+class Atom {
+
+	constructor(name, muts, tag, attr) {
+		this.name = name;
+		this.muts = muts;
+		this.tag  = tag;
+		this.attr = attr;
 	}
 
-	whoIs() {
-		cl(`Name: ${this.name}, mutations: ${this.mutations}, atoms: ${this.atoms}`);
-	}
+	static create() {
+		let name, muts, tag, attr
 
-	init(rewrite) {
-		let fileName = `${MAINDIR}${this.name}.json`;
-		let fileContent = jsonb(this, null, 4, 100);
+		cl(`Creating new atom. "Ctrl+c" to exit`.gray);
 
-		fs.access(fileName, fs.F_OK, (notExist) => {
+		rl.question(`Name » `.green, atomName => {
+			name = atomName;
 
-			if (notExist) {
+			rl.question(`Mutates » `.green, atomMutate => {
+				muts = atomMutate.split(' ');
 
-				fs.writeFile(fileName, fileContent, (err) => {
-					if (err) throw err;
+				rl.question(`Tag » `.green, atomTag => {
+					tag = atomTag;
 
-					console.log(`molecule ${this.name} created:`.green);
-					console.log(fileContent.gray);
+					rl.question(`Attributes » `.green, atomAttr => {
+						attr = atomAttr.split(' ');
+
+						var atom = new Atom(name, muts, tag, attr);
+						Atom.save(atom);
+						rl.close();
+					});
 				});
-
-			}
-
-			else {
-				if (rewrite) {
-					fs.writeFile(fileName, fileContent, (err) => {
-						if (err) throw err;
-
-						console.log(`molecule ${this.name} created:`.green);
-						console.log(fileContent.gray);
-					});	
-				}
-
-				else {
-					console.log("FILE: Already exsit".blue);
-					return;
-				}
-			}
-
+			});
 		});
-
 	}
 
+	static save(atom) {
+		addAtom(atom);
+	}
 }
 
 //----------------------------------------
@@ -86,30 +92,47 @@ class Molecule {
 
 //» FUNCTIONS 
 //----------------------------------------
-
 /*
-Reading molecules from folder
-and generating folders structure
+Set path option into moleculate.json
 
-	» dir  — name of blocks directory | string
-	» opts — options                  | obj
+	» path — path for blocks | string
 */
-function moleculate(dir) {
+function setOptionPath(path) {
+
+	let data = jsonfile.readFileSync(MAINFILE);
+
+		data.dir = path;
+
+	jsonfile.writeFileSync(MAINFILE, data, {spaces: 4});
+
+	cl(`Path updated`.green);
+	rl.close();
 
 }
 
 
-
 /*
-Get JSON data from file: return - json
+Adding new atom in moleculate.json
 
-	» file — path to file | string
-	» sync — sync reading | bool
+	» path — path for blocks | string
 */
-function getJson(file) {
-	let json = jsonb( fs.readFileSync(file, 'utf-8'), null, 4,  100 );
+function addAtom(atom) {
 
-	return json;
+	let data = jsonfile.readFileSync(MAINFILE);
+
+	data.atoms.forEach( (a, i, array) => {
+
+		if (a.name === atom.name) {
+			cl('Atom already exists: '.red + `${atom.name}`.yellow);
+			process.abort();
+		}
+
+	});
+
+	data.atoms.push(atom);
+
+	jsonfile.writeFileSync(MAINFILE, data, {spaces: 4});
+
 }
 //----------------------------------------
 
@@ -121,60 +144,66 @@ function getJson(file) {
 //----------------------------------------
 var args = process.argv;
 
+process.title = 'Moleculate';
+
+const commands = ["set", "s", "new", "n", "--help", "-h", "--path", "-p"];
+
 args.shift(); // current fix
 args.shift(); // Delete first command
 
-var
-	custom    = false,
-	rewrite   = false,
-	molecules = [].slice.call( fs.readdirSync(MAINDIR) ),
-	atoms 	  = {};
+var mode = args[0];
+var type = args[1];
 
-args.forEach( (el, i, arr) => {
-
-	if (el === "-c" || el === "--custom") {
-		custom = true;
-		arr.splice(i, 1);
-	}
-
-});
-
-args.forEach( (el, i, arr) => {
-
-	if (el === "-r" || el === "--rewrite") {
-		rewrite = true;
-		arr.splice(i, 1);
-	}
-
-});
-
-fs.access(ATOMS, fs.F_OK, (notExist) => {
-
-	if (notExist)
-		cl(`Create some atoms1`.blue);
-
-	else
-		atoms = getJson(ATOMS);
-
-});
-
-var molecule = args[0];
-var action   = args[1];
-
-args.shift();
-args.shift();
-
-if (action === "mutate") {
-	var molecules = [].slice.call( fs.readdirSync(MAINDIR) );
-
-	if (molecules.indexof(molecule) !== -1) {
-
-	}
+if (commands.indexOf(mode) === -1) {
+	cl('No such command.\nUse "--help" to show possible commands'.blue);
+	rl.close();
 }
 
-if (action === "with") {
-	var mol = new Molecule(molecule, [], args);
+if (mode === "--help" || mode === "-h") {
+	cl(`Moleculate: --help\n`.green)
+	cl(`\tmoleculate new atom     — create new atom`)
+	cl(`\tmoleculate new molecule — create new molecule`)
+}
 
-	mol.init();
+if (mode === "new" || mode === "n") {
+
+	switch(type) {
+
+		case undefined:
+			cl(`Enter type of element: 'atom' of 'molecule'`.blue);
+			break;
+
+		case "a":
+		case "atom":
+			Atom.create();
+			break;
+
+		case "m":
+		case "molecule":
+			cl(`New molecule init command`.yellow);
+			break;
+
+		default:
+			cl(`Wrong command. Use "--help" for information`.blue);
+
+	}
+
+}
+
+if (mode === "--path" || mode === "-p") {
+
+	switch(type) {
+
+		case undefined:
+			rl.question(`Blocks directory path » `, newPath => {
+				setOptionPath( path.normalize(newPath) );
+				rl.close();
+			});
+			break;
+
+		default:
+			setOptionPath( path.normalize(type) );
+	}
+
 }
 //----------------------------------------

@@ -1,0 +1,25 @@
+{
+    "dir": "source/blocks",
+    "atoms": [
+        {
+            "name": "input",
+            "muts": [
+                "disabled"
+            ],
+            "tag": "input",
+            "attr": [
+                "type:test"
+            ]
+        },
+        {
+            "name": "add",
+            "muts": [
+                "asd"
+            ],
+            "tag": "sdf",
+            "attr": [
+                "sfd"
+            ]
+        }
+    ]
+}

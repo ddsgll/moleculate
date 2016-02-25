@@ -10,13 +10,15 @@
   "license": "MIT",
   "dependencies": {
     "mkdirp": "^0.5.1",
-    "underscore": "^1.8.3",
-    "cli": "latest",
     "json-beautify": "latest",
-    "colors": "latest",
-    "exit": "latest"
+    "colors": "latest"
   },
   "bin": {
     "moleculate": "./main.js"
+  },
+  "devDependencies": {
+    "clear": "0.0.1",
+    "jsonfile": "^2.2.3",
+    "level": "^1.4.0"
   }
 }
