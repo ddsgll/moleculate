@@ -1,35 +1,16 @@
 {
-    "dir": "source/blocks",
-    "molecules": [
+    "atoms": [
         {
-            "name": "qwe",
-            "mutations": [
-                "qwe"
+            "name": "dd",
+            "muts": [
+                "sd"
             ],
-            "atoms": [
-                "qwe"
-            ]
-        },
-        {
-            "name": "eee",
-            "mutations": [
-                "qwe"
-            ],
-            "atoms": [
-                "qwe"
+            "tag": "sd",
+            "attr": [
+                "sd"
             ]
         }
     ],
-    "atoms": [
-        {
-            "name": "qwe",
-            "muts": [
-                "ff"
-            ],
-            "tag": "ddfs",
-            "attr": [
-                "fsd"
-            ]
-        }
-    ]
+    "molecules": [],
+    "dir": "source/blocks"
 }

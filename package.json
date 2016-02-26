@@ -1,6 +1,6 @@
 {
   "name": "moleculate",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "",
   "main": "main.js",
   "scripts": {
@@ -14,8 +14,7 @@
     "json-beautify": "latest",
     "colors": "latest",
     "clear": "0.0.1",
-    "jsonfile": "^2.2.3",
-    "level": "^1.4.0"
+    "jsonfile": "^2.2.3"
   },
   "bin": {
     "moleculate": "./main.js"
