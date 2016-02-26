@@ -10,7 +10,6 @@ var cl = (m) => console.log(m);
 
 // Modules
 const
-	_        = require('underscore'),
 	fs       = require('fs'),
 	path     = require('path'),
 	jsonb    = require('json-beautify'),
@@ -36,6 +35,7 @@ var blockPath = '/blocks/';
 
 //» CLASSES 
 //----------------------------------------
+// Molecule class
 class Molecule {
 
 	constructor(name, muts, atoms) {
@@ -43,9 +43,78 @@ class Molecule {
 		this.mutations = muts  ? muts  : [];
 		this.atoms     = atoms ? atoms : [];
 	}
+
+	static create() {
+		let name, muts, atoms;
+
+		cl(`Creating new molecule. "Ctrl+c" to exit`.gray);
+
+		rl.question(`Name » `.green, molName => {
+			name = molName;
+
+			rl.question(`Mutates » `.green, molMutate => {
+				muts = molMutate.split(' ');
+
+				rl.question(`Atoms » \n`.green + `Atoms: ${getAtomsList(MAINFILE)}\n`.gray, molAtoms => {
+					atoms = molAtoms.split(' ');
+					let notExisted = [];
+
+					for (let atom of atoms) {
+
+						if (isNewAtom(atom)) {
+							notExisted.push(atom);
+						}
+					}
+
+					var molecule = new Molecule(name, muts, atoms);
+					
+					if (notExisted.length) {					
+						cl(`Some atoms were not found: `.red + `${notExisted}`.yellow)
+						cl(`Don't forget to create them`.red);
+					}
+
+					Molecule.save(molecule);
+
+				});
+			});
+		});
+
+	}
+
+	static save(mol) {
+		let
+			data        = jsonfile.readFileSync(MAINFILE),
+			molecules   = getMoleculesList(MAINFILE),
+			molNotExist = isNewMolecule(mol.name);
+
+		if (molNotExist) {
+			data.molecules.push(mol);
+
+			jsonfile.writeFileSync(MAINFILE, data, {spaces: 4});
+
+			Molecule.initBlock(mol.name);
+		}
+
+		else
+			cl(`Molecule already exists: `.red + `${mol.name}`.yellow);
+	}
+
+	static initBlock(name) {
+
+
+		cl(`Created new molecule: `.green  + `${name}`.yellow);
+		rl.close();
+	}
 }
 
 
+
+
+
+
+
+
+// Atom class
 class Atom {
 
 	constructor(name, muts, tag, attr) {
@@ -82,7 +151,23 @@ class Atom {
 	}
 
 	static save(atom) {
-		addAtom(atom);
+
+		let
+			data      = jsonfile.readFileSync(MAINFILE),
+			atoms     = getAtomsList(MAINFILE),
+			atomExist = isNewAtom(atom.name);
+
+		if (atomExist) {
+			data.atoms.push(atom);
+
+			jsonfile.writeFileSync(MAINFILE, data, {spaces: 4});
+
+			cl(`Created new atom: `.green  + `${atom.name}`.yellow);
+		}
+
+		else
+			cl(`Atom already exists: `.red + `${atom.name}`.yellow);
+
 	}
 }
 
@@ -112,27 +197,67 @@ function setOptionPath(path) {
 
 
 /*
-Adding new atom in moleculate.json
+Return array of current atoms names
 
-	» path — path for blocks | string
+	» file — path for blocks | string
 */
-function addAtom(atom) {
+function getAtomsList(file) {
 
-	let data = jsonfile.readFileSync(MAINFILE);
+	let data = jsonfile.readFileSync(file);
+	let array = [];
 
-	data.atoms.forEach( (a, i, array) => {
-
-		if (a.name === atom.name) {
-			cl('Atom already exists: '.red + `${atom.name}`.yellow);
-			process.abort();
-		}
-
+	data.atoms.forEach( el => {
+		array.push(el.name);
 	});
 
-	data.atoms.push(atom);
+	return array;
 
-	jsonfile.writeFileSync(MAINFILE, data, {spaces: 4});
+}
 
+
+
+/*
+Return array of current molecules names
+
+	» file — path for blocks | string
+*/
+function getMoleculesList(file) {
+
+	let data = jsonfile.readFileSync(file);
+	let array = [];
+
+	data.molecules.forEach( el => {
+		array.push(el.name);
+	});
+
+	return array;
+
+}
+
+
+
+/*
+Check if atom exists - bool
+
+	» name — atom name | string
+*/
+function isNewAtom(name) {
+	var atoms = getAtomsList(MAINFILE);
+
+	return atoms.indexOf(name) === -1 ? true : false;
+}
+
+
+
+/*
+Check if molecule exists - bool
+
+	» name — molecule name | string
+*/
+function isNewMolecule(name) {
+	var mols = getMoleculesList(MAINFILE);
+
+	return mols.indexOf(name) === -1 ? true : false;
 }
 //----------------------------------------
 
@@ -146,25 +271,41 @@ var args = process.argv;
 
 process.title = 'Moleculate';
 
-const commands = ["set", "s", "new", "n", "--help", "-h", "--path", "-p"];
+const commands = ["new", "n", "--help", "-h", "path", "p"];
 
 args.shift(); // current fix
 args.shift(); // Delete first command
 
-var mode = args[0];
+var mode = args[0]; 
 var type = args[1];
 
+
+
+// Check if command is valid
 if (commands.indexOf(mode) === -1) {
 	cl('No such command.\nUse "--help" to show possible commands'.blue);
 	rl.close();
 }
 
+
+
+// Call help
 if (mode === "--help" || mode === "-h") {
-	cl(`Moleculate: --help\n`.green)
-	cl(`\tmoleculate new atom     — create new atom`)
-	cl(`\tmoleculate new molecule — create new molecule`)
+	cl(`\nMoleculate: --help`.magenta)
+	cl(`\tmoleculate new atom        — create new atom`)
+	cl(`\tmoleculate new molecule    — create new molecule`)
+	cl(`\tmoleculate path <pathname> — set blocks directory relative to project`)
+
+	cl(`\nShorthands:`.magenta)
+	cl(`\t n a     — new atom`)
+	cl(`\t n m     — new molecule`)
+	cl(`\t p <...> — new molecule\n`)
+	rl.close();
 }
 
+
+
+// Init new element
 if (mode === "new" || mode === "n") {
 
 	switch(type) {
@@ -180,17 +321,21 @@ if (mode === "new" || mode === "n") {
 
 		case "m":
 		case "molecule":
-			cl(`New molecule init command`.yellow);
+			Molecule.create();
 			break;
 
 		default:
 			cl(`Wrong command. Use "--help" for information`.blue);
+			rl.close();
 
 	}
 
 }
 
-if (mode === "--path" || mode === "-p") {
+
+
+// Set path parameter
+if (mode === "path" || mode === "p") {
 
 	switch(type) {
 

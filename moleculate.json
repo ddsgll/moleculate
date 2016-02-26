@@ -1,24 +1,34 @@
 {
     "dir": "source/blocks",
-    "atoms": [
+    "molecules": [
         {
-            "name": "input",
-            "muts": [
-                "disabled"
+            "name": "qwe",
+            "mutations": [
+                "qwe"
             ],
-            "tag": "input",
-            "attr": [
-                "type:test"
+            "atoms": [
+                "qwe"
             ]
         },
         {
-            "name": "add",
-            "muts": [
-                "asd"
+            "name": "eee",
+            "mutations": [
+                "qwe"
             ],
-            "tag": "sdf",
+            "atoms": [
+                "qwe"
+            ]
+        }
+    ],
+    "atoms": [
+        {
+            "name": "qwe",
+            "muts": [
+                "ff"
+            ],
+            "tag": "ddfs",
             "attr": [
-                "sfd"
+                "fsd"
             ]
         }
     ]

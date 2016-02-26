@@ -4,21 +4,20 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node main"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "mkdirp": "^0.5.1",
     "json-beautify": "latest",
-    "colors": "latest"
-  },
-  "bin": {
-    "moleculate": "./main.js"
-  },
-  "devDependencies": {
+    "colors": "latest",
     "clear": "0.0.1",
     "jsonfile": "^2.2.3",
     "level": "^1.4.0"
+  },
+  "bin": {
+    "moleculate": "./main.js"
   }
 }
