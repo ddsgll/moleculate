@@ -1,16 +1,5 @@
 {
-    "atoms": [
-        {
-            "name": "dd",
-            "muts": [
-                "sd"
-            ],
-            "tag": "sd",
-            "attr": [
-                "sd"
-            ]
-        }
-    ],
+    "atoms": [],
     "molecules": [],
     "dir": "source/blocks"
 }
