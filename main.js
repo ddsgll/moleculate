@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 'use strict';
-
 var cl = (m) => console.log(m);
 
 
-
+//----------------------------------------
 //» GLOBALS 
 //----------------------------------------
 
-// Modules
+// Npm modules
 const
 	fs       = require('fs'),
 	path     = require('path'),
@@ -17,7 +16,7 @@ const
 	readline = require('readline'),
 	jsonfile = require('jsonfile');
 
-
+// Readline
 const rl = readline.createInterface({
 	input : process.stdin,
 	output: process.stdout
@@ -28,19 +27,20 @@ const rl = readline.createInterface({
 const MAINFILE = path.join(process.cwd() + '/moleculate.json');
 const commands = ["new", "n", "--help", "-h", "path", "p", "run", "r"];
 
-
-// Variables
-var blockPath = 'blocks/';
-
-
 //----------------------------------------
 
 
 
 
 
-//» CLASSES 
+
+
+
+
+
 //----------------------------------------
+// » CLASSES 
+// ----------------------------------------
 
 // Markup generator class
 class Generator {
@@ -52,18 +52,9 @@ class Generator {
 	static jade(block) {
 
 		let
-			mStart = `
-			//- Block
-			mixin ${block.name}(m)
-			
-				//- Mutation
-				- var p = m === undefined ? '' : '--' + m;
-			`,
+			mStart = `//- Block\nmixin ${block.name}(m)\n\t//- Mutation\n\t- var p = m === undefined ? '' : '--' + m;\n\n`,
 
-			mEnd = `
-				//- Body
-				div(class='${block.name}#{p}')
-			`,
+			mEnd   = `\n\n\t//- Body\n\tdiv(class='${block.name}#{p}')\n`,
 
 			mElements = '';
 
@@ -81,14 +72,7 @@ class Generator {
 				// Define default atom
 				if (isNewAtom(atel))
 				{
-					elemString = `
-					//- Element '${atel}'
-					mixin ${atel}(em)
-						- var ep = em === undefined ? '' : '--' + em;
-					
-						div(class='${block.name}#{p}__${atel}#{ep}')
-
-					`;
+					elemString = `\t//- Element '${atel}'\n\tmixin ${atel}(em)\n\t\t- var ep = em === undefined ? '' : '--' + em;\n\n\t\tdiv(class='${block.name}#{p}__${atel}#{ep}')\n\n`;
 				}
 
 
@@ -108,15 +92,7 @@ class Generator {
 					});
 
 
-					elemString = `
-					//- Element '${ad.name}'
-
-					mixin ${atel}(em)
-						//- Mutation
-						- var ep = em === undefined ? '' : '--' + em;
-					
-						${ad.tag}(class='${block.name}#{p}__${ad.name}#{ep} ${props}')
-					`;
+					elemString = `\t\t//- Element '${ad.name}'\n\t\tmixin ${atel}(em)\n\t\t\t//- Mutation\n\t\t\t- var ep = em === undefined ? '' : '--' + em;\n\n\t\t\t${ad.tag}(class='${block.name}#{p}__${ad.name}#{ep} ${props}')\n\n`;
 				}
 
 				mElements += elemString;
@@ -127,6 +103,7 @@ class Generator {
 		return mStart + mElements + mEnd;
 	}
 	//----------------------------------------
+
 
 
 
@@ -154,12 +131,12 @@ class Generator {
 			
 			block.atoms.forEach( atel => {
 
-				blockModsElems += `\t\t.${block.name}__${atel}\n\t\t\t\n\n`;
+				blockModsElems += `\t\t.${block.name}__${atel}\n\t\t\t\n`;
 
 
 				// Define default element
 				if (isNewAtom(atel))
-					elemString = `.${block.name}__${atel}\n\n`;
+					elemString = `.${block.name}__${atel}\n`;
 				
 
 				// Define custom element
@@ -200,9 +177,6 @@ class Generator {
 	//----------------------------------------
 
 }
-
-
-
 
 
 
@@ -262,78 +236,7 @@ class Molecule {
 		else
 			cl(`Molecule already exists: `.red + `${mol.name}`.yellow);
 	}
-
-
-	static generateJade(el) {
-
-
-	}
-
-
-	static generateStyl(el) {
-
-		let atomsList = getAtomsList(MAINFILE);
-
-		let
-			mStart         = ``,
-			blockModsElems = ``;
-
-		if (el.atoms.length) {
-			el.atoms.forEach( atel => {
-				let elemString = '';
-
-				blockModsElems += `\t\t.${el.name}__${atel}\n\t\t\t\n\n`;
-
-				if (atomsList.indexOf(atel) === -1)
-					elemString = `.${el.name}__${atel}\n\n`;
-				
-
-				else {
-					let ad = getAtomByName(atel);
-
-
-					let mutString = '';
-
-					if (ad.muts.length) {					
-						ad.muts.forEach( (mut) => {
-
-							mutString += `\t&--${mut}\n\n`;
-
-						});
-					}
-
-
-					elemString = `.${el.name}__${atel}\n\n` + mutString;
-				}
-
-				mStart += elemString;
-			});
-		}
-
-
-
-		let blockMods = '';
-
-		if (el.mutations.length) {
-			el.mutations.forEach( mut => {
-				blockMods += `\t&--${mut}\n\n` + blockModsElems;
-			});
-		}
-
-
-		let mBlock = `.${el.name}\n\t\n`;
-
-
-		let result = mStart + mBlock + blockMods;
-
-		return result;
-	}
 }
-
-
-
-
-
 
 
 
@@ -399,10 +302,120 @@ class Atom {
 	}
 }
 
+// ----------------------------------------
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------
+//» MAIN THREAD 
+//----------------------------------------
+var args = process.argv;
+
+args.shift(); // current fix
+args.shift(); // Delete first command
+
+var mode = args[0]; 
+var type = args[1];
+
+
+
+// Check if command is valid
+if (commands.indexOf(mode) === -1) {
+	cl('No such command.\nUse "--help" to show possible commands'.blue);
+	rl.close();
+}
+
+
+
+// Call help
+if (mode === "--help" || mode === "-h") {
+	cl(`\nMoleculate: --help`.magenta)
+	cl(`\tmoleculate new atom        — create new atom`)
+	cl(`\tmoleculate new molecule    — create new molecule`)
+	cl(`\tmoleculate path <pathname> — set blocks directory relative to project`)
+
+	cl(`\nShorthands:`.magenta)
+	cl(`\t n a     — new atom`)
+	cl(`\t n m     — new molecule`)
+	cl(`\t p <...> — new molecule\n`)
+	rl.close();
+}
+
+
+
+// Init new element
+if (mode === "new" || mode === "n") {
+
+	switch(type) {
+
+		case undefined:
+			cl(`Enter type of element: 'atom' of 'molecule'`.blue);
+			break;
+
+		case "a":
+		case "atom":
+			Atom.create();
+			break;
+
+		case "m":
+		case "molecule":
+			Molecule.create();
+			break;
+
+		default:
+			cl(`Wrong command. Use "--help" for information`.blue);
+			rl.close();
+
+	}
+
+}
+
+
+
+// Set path parameter
+if (mode === "path" || mode === "p") {
+
+	switch(type) {
+
+		case undefined:
+			rl.question(`Blocks directory path » `, newPath => {
+				setOptionPath( path.normalize(newPath) );
+				rl.close();
+			});
+			break;
+
+		default:
+			setOptionPath( path.normalize(type) );
+	}
+
+}
+
+
+
+// Run blocks building
+if (mode === "run" || mode === "r") {
+	buildBlocks();
+}
+
 //----------------------------------------
 
 
 
+
+
+
+
+
+
+
+//----------------------------------------
 //» FUNCTIONS 
 //----------------------------------------
 
@@ -518,113 +531,11 @@ function getAtomByName(name) {
 	return result;
 }
 
-//----------------------------------------
 
 
-
-
-
-
-
-
-
-
-
-
-//» MAIN THREAD 
-//----------------------------------------
-var args = process.argv;
-
-args.shift(); // current fix
-args.shift(); // Delete first command
-
-var mode = args[0]; 
-var type = args[1];
-
-
-// Check if command is valid
-if (commands.indexOf(mode) === -1) {
-	cl('No such command.\nUse "--help" to show possible commands'.blue);
-	rl.close();
-}
-
-
-
-// Call help
-if (mode === "--help" || mode === "-h") {
-	cl(`\nMoleculate: --help`.magenta)
-	cl(`\tmoleculate new atom        — create new atom`)
-	cl(`\tmoleculate new molecule    — create new molecule`)
-	cl(`\tmoleculate path <pathname> — set blocks directory relative to project`)
-
-	cl(`\nShorthands:`.magenta)
-	cl(`\t n a     — new atom`)
-	cl(`\t n m     — new molecule`)
-	cl(`\t p <...> — new molecule\n`)
-	rl.close();
-}
-
-
-
-// Init new element
-if (mode === "new" || mode === "n") {
-
-	switch(type) {
-
-		case undefined:
-			cl(`Enter type of element: 'atom' of 'molecule'`.blue);
-			break;
-
-		case "a":
-		case "atom":
-			Atom.create();
-			break;
-
-		case "m":
-		case "molecule":
-			Molecule.create();
-			break;
-
-		default:
-			cl(`Wrong command. Use "--help" for information`.blue);
-			rl.close();
-
-	}
-
-}
-
-
-
-// Set path parameter
-if (mode === "path" || mode === "p") {
-
-	switch(type) {
-
-		case undefined:
-			rl.question(`Blocks directory path » `, newPath => {
-				setOptionPath( path.normalize(newPath) );
-				rl.close();
-			});
-			break;
-
-		default:
-			setOptionPath( path.normalize(type) );
-	}
-
-}
-
-
-
-if (mode === "run" || mode === "r") {
-	buildBlocks();
-}
-//----------------------------------------
-
-
-
-
-//» BUILD BEM BLOCKS
-//----------------------------------------
+/*
+Builds BEM blocks from moleculate.json
+*/
 function buildBlocks() {
 	let data = jsonfile.readFileSync(MAINFILE);
 

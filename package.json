@@ -4,7 +4,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "upd": "git add . && git commit -m \"Update\" && git push"
   },
   "author": "",
   "license": "MIT",
@@ -15,5 +16,9 @@
   },
   "bin": {
     "moleculate": "./main.js"
+  },
+  "devDependencies": {
+    "node-import": "^0.9.2",
+    "require-dir": "^0.3.0"
   }
 }

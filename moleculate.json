@@ -1,5 +1,42 @@
 {
     "atoms": [],
-    "molecules": [],
+    "molecules": [
+        {
+            "name": "menu",
+            "mutations": [
+                "footer",
+                "mobile"
+            ],
+            "atoms": [
+                "link"
+            ]
+        },
+        {
+            "name": "test",
+            "mutations": [
+                "test1",
+                "test2"
+            ],
+            "atoms": [
+                "atom1",
+                "atom2"
+            ]
+        },
+        {
+            "name": "egqeg",
+            "mutations": [
+                "weg",
+                "ergw"
+            ],
+            "atoms": [
+                "werg",
+                "sg",
+                "segwe",
+                "ewrgw",
+                "regwerg",
+                "wrg"
+            ]
+        }
+    ],
     "dir": "blocks"
 }
